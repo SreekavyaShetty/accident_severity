@@ -6,4 +6,3 @@ joblib
 matplotlib
 ipython
 Pillow
-shutil
