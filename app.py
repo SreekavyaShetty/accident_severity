@@ -3,18 +3,38 @@ import numpy as np
 import streamlit as st
 import joblib
 import shutil
+import zstandard as zstd
 
 
+with open('rta_model_deploy_c.joblib', 'rb') as f_in:
+    cctx = zstd.ZstdCompressor(level=10)
+    with open('my_compress.joblib.zst', 'wb') as f_out:
+        writer = cctx.stream_writer(f_out)
+        writer.write(f_in.read())
+        writer.flush(zstd.FLUSH_FRAME)
+        
+        
+with open('my_compress.joblib.zst', 'rb') as compressed_file:
+    # Create a decompression context
+    dctx = zstd.ZstdDecompressor()
 
-splitted_filenames = ["rta_model_deploy.joblib.partaa", "rta_model_deploy.joblib.partab", "rta_model_deploy.joblib.partac","rta_model_deploy.joblib.partad", "rta_model_deploy.joblib.partae", "rta_model_deploy.joblib.partaf","rta_model_deploy.joblib.partai", "rta_model_deploy.joblib.partaj", "rta_model_deploy.joblib.partak","rta_model_deploy.joblib.partal", "rta_model_deploy.joblib.partam"]
+    # Create a decompression stream
+    with dctx.stream_reader(compressed_file) as reader:
+        # Open a new file for writing the decompressed data
+        with open('decompressed_new_file.joblib', 'wb') as decompressed_file:
+            # Decompress the data and write it to the output file
+            decompressed_file.write(reader.read())
 
 
-with open('model.joblib', 'wb') as outfile:
-    for f in splitted_filenames:
-        with open(f, 'rb') as infile:
-            shutil.copyfileobj(infile, outfile)
+# splitted_filenames = ["rta_model_deploy.joblib.partaa", "rta_model_deploy.joblib.partab", "rta_model_deploy.joblib.partac","rta_model_deploy.joblib.partad", "rta_model_deploy.joblib.partae", "rta_model_deploy.joblib.partaf","rta_model_deploy.joblib.partai", "rta_model_deploy.joblib.partaj", "rta_model_deploy.joblib.partak","rta_model_deploy.joblib.partal", "rta_model_deploy.joblib.partam"]
 
-model = joblib.load("model.joblib")
+
+# with open('model.joblib', 'wb') as outfile:
+#     for f in splitted_filenames:
+#         with open(f, 'rb') as infile:
+#             shutil.copyfileobj(infile, outfile)
+
+model = joblib.load("decompressed_new_file.joblib")
 encoder = joblib.load("ordinal_encoder.joblib")
 
 st.set_option('deprecation.showPyplotGlobalUse', False)
