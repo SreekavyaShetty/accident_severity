@@ -3,7 +3,6 @@ import numpy as np
 import streamlit as st
 import joblib
 import shutil
-import zstandard as zstd
 
 
 # with open('rta_model_deploy_c.joblib', 'rb') as f_in:
